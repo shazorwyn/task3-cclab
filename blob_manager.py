@@ -1,4 +1,5 @@
 from azure.storage.blob import BlobServiceClient
+from azure.core.exceptions import ResourceNotFoundError
 from config import STORAGE_CONNECTION_STRING, CONTAINER_NAME
 import os
 
@@ -20,6 +21,17 @@ def download_file(blob_name, local_file):
     with open(local_file, "wb") as file:
         file.write(blob_client.download_blob().readall())
     print(f"Downloaded {blob_name} as {local_file}")
+
+
+def delete_blob(blob_name):
+    try:
+        blob_client = blob_service_client.get_blob_client(
+            container=CONTAINER_NAME, blob=blob_name)
+        blob_client.delete_blob()
+        print(f"Successfully deleted blob: {blob_name}")
+    except ResourceNotFoundError:
+        print(f"Error: Blob '{blob_name}' not found.")
+    list_blobs()
 
 
 def list_blobs():
@@ -46,7 +58,8 @@ def menu():
         print("2. Download File")
         print("3. List Blobs")
         print("4. List Blob Versions")
-        print("5. Exit")
+        print("5. Delete Blob")
+        print("6. Exit")
 
         choice = input("Enter choice: ").strip()
 
@@ -71,7 +84,11 @@ def menu():
             list_versions(blob_name)
 
         elif choice == "5":
-            print("exiting")
+            blob_name = input("Enter blob name to delete: ").strip()
+            delete_blob(blob_name)
+
+        elif choice == "6":
+            print("Exiting...")
             break
 
         else:
